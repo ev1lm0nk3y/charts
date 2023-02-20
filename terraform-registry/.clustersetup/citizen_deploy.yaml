@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: citizen
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: citizen
+  template:
+    metadata:
+      labels:
+        app: citizen
+    spec:
+      serviceAccountName: tf-registry
+      containers:
+        - name: citizen
+          image: ghcr.io/outsideris/citizen:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CITIZEN_DATABASE
+              value: mongodb
+            - name: CITIZEN_MONGO_DB_URI
+              value: mongodb://mongodb-0.mongodb.default:27017/citizen
+            - name: CITIZEN_STORAGE
+              value: file
+            - name: CITIZEN_STORAGE_PATH
+              value: /tf-modules
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /tf-modules
+              name: modules
+      volumes:
+        - name: modules
+          emptyDir: {}
